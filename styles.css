@@ -1,0 +1,72 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#outerDiv {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+#viewDiv {
+  height: 100%;
+  /* width: 100%;
+  flex-grow: 2;
+  position: relative; */
+  transition: height 0.3s ease;
+}
+
+#featureTablePH {
+  height: 0;
+  overflow: hidden;
+  transition: height 0.3s ease;
+  overflow-y: auto;
+  overflow-x: auto;
+  /* height: 50%;
+  flex-grow: 1;
+  
+  padding: 8px;
+  box-sizing: border-box; */
+}
+
+.feature-table tr:nth-child(even) {
+  background-color: #d3d3d3;
+}
+
+#query {
+  display: flex;
+  gap: 5px;
+  background-color: #c7eaff;
+}
+
+.feature-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.feature-table th,
+.feature-table td {
+  border: 1px solid #444;
+  padding: 6px;
+  text-align: left;
+}
+
+/* #featureTablePH table {
+  border-collapse: collapse;
+  width: 100%;
+} */
+
+arcgis-map {
+  display: block;
+  /* height: 100vh; */
+}
+
+#query {
+  position: relative;
+  bottom: 50%;
+  /* left: 10px; */
+}
