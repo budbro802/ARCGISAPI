@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- prettier-ignore -->
     <script type="module" src="https://js.arcgis.com/calcite-components/3.0.3/calcite.esm.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/calcite-components/2.4.0/calcite.css"
+    />
     <!-- prettier-ignore -->
     <link rel="stylesheet" href="https://js.arcgis.com/4.32/esri/themes/dark/main.css"/>
     <link rel="stylesheet" href="styles.css" />
@@ -16,15 +20,44 @@
   </head>
 
   <body>
-    <div id="outerDiv">
-      <div id="viewDiv"></div>
-      <div id="featureTablePH"></div>
-    </div>
-    <div id="query">
-      <input value="AGNCY_TYP = 'City Agency'" type="text" id="whereClause" />
-      <button id="queryButton">Query Features</button>
-      <button id="resetButton">Reset</button>
-    </div>
+    <!-- prettier-ignore -->
+    <calcite-action id="toggle-panel" icon="chevrons-left" text="Toggle Panel"></calcite-action>
+    <calcite-shell>
+      <!-- prettier-ignore -->
+      <!-- <calcite-action-bar slot="action-bar">
+        <calcite-action id="toggle-panel" icon="chevrons-left" text="Toggle Panel" title="Toggle Panel"></calcite-action>
+      </calcite-action-bar> -->
+      <!-- prettier-ignore -->
+      <calcite-shell-panel slot="panel-start" position="start" collapsed class="map-tools-panel">
+        <calcite-panel heading="Map Tools" collapsible>
+          <div id="bookmarksDiv" class="panel-widget"></div>
+          <div id="basemapGalleryDiv" class="panel-widget"></div>
+          <div id="printDiv" class="panel-widget"></div>
+          <div id="legendDiv" class="panel-widget"></div>
+        </calcite-panel>
+      </calcite-shell-panel>
+
+      <div id="outerDiv">
+        <div id="viewDiv"></div>
+        <div id="trailheadCount" style="padding: 10px; font-weight: bold"></div>
+        <div id="featureTablePH"></div>
+        <div id="intersectListContainer" class="hidden">
+          <h3>Intersecting Parks</h3>
+          <ul id="intersectList"></ul>
+        </div>
+      </div>
+
+      <div id="query" slot="footer">
+        <input
+          value="AGNCY_TYP = 'State Agency'"
+          type="text"
+          id="whereClause"
+        />
+        <button id="queryButton">Query Features</button>
+        <button id="resetButton">Reset</button>
+        <button id="clearButton">Clear</button>
+      </div>
+    </calcite-shell>
     <script type="module" src="/src/appv2.js"></script>
   </body>
 </html>

@@ -9,7 +9,14 @@ import Expand from "https://js.arcgis.com/4.32/@arcgis/core/widgets/Expand.js";
 import GraphicsLayer from "https://js.arcgis.com/4.32/@arcgis/core/layers/GraphicsLayer.js";
 import * as geometryEngine from "https://js.arcgis.com/4.32/@arcgis/core/geometry/geometryEngine.js";
 import * as projection from "https://js.arcgis.com/4.32/@arcgis/core/geometry/projection.js";
-import SpatialReference from "https://js.arcgis.com/4.32/@arcgis/core/geometry/SpatialReference.js";
+import Sketch from "https://js.arcgis.com/4.32/@arcgis/core/widgets/Sketch.js";
+import Graphic from "https://js.arcgis.com/4.32/@arcgis/core/Graphic.js";
+import Bookmarks from "https://js.arcgis.com/4.32/@arcgis/core/widgets/Bookmarks.js";
+import BasemapGallery from "https://js.arcgis.com/4.32/@arcgis/core/widgets/BasemapGallery.js";
+import Print from "https://js.arcgis.com/4.32/@arcgis/core/widgets/Print.js";
+
+const queryGeometries = [];
+const queryParkNames = [];
 
 const map = new Map({
   basemap: "topo-vector",
@@ -106,21 +113,123 @@ const nearbyTrailheadsLayer = new GraphicsLayer({
 });
 map.add(nearbyTrailheadsLayer);
 
+const sketchLayer = new GraphicsLayer({
+  title: "Sketch Layer",
+});
+map.add(sketchLayer); // Add to the map so we can see what the user draws
+
+const intersectingParksLayer = new GraphicsLayer({
+  title: "Intersecting Parks",
+});
+map.add(intersectingParksLayer);
+
+const sketch = new Sketch({
+  layer: sketchLayer,
+  view: view,
+  availableCreateTools: ["polygon", "rectangle"],
+  creationMode: "single", // Only allow one shape at a time
+  visibleElements: {
+    createTools: {
+      point: false,
+      polyline: false,
+      circle: false,
+    },
+    selectionTools: {
+      "rectangle-selection": false,
+      "lasso-selection": false,
+    },
+  },
+});
+
+view.ui.add(sketch, "top-right");
+
+const highlightSymbol = {
+  type: "simple-fill",
+  color: [255, 0, 0, 0.2], // Red with transparency
+  outline: {
+    color: [255, 0, 0],
+    width: 2,
+  },
+};
+
+sketch.on("create", function (event) {
+  // Step 1: Clear any previous drawings by the user
+  sketchLayer.removeAll();
+
+  // Step 2: Clear any previously highlighted intersecting parks
+  intersectingParksLayer.removeAll(); // clear all previous highlights
+
+  // Step 3: Wait until the drawing if complete
+  if (event.state === "complete") {
+    // Get the geometry of the user-drawn shape
+    const drawnGeometry = event.graphic.geometry;
+
+    // Store it in the sketchLayer for visual reference
+    sketchLayer.add(event.graphic);
+
+    // Step 4: Perform spatial analysis using intersects()
+    const intersectingParks = [];
+
+    queryGeometries.forEach((parkGeometry, index) => {
+      if (geometryEngine.intersects(drawnGeometry, parkGeometry)) {
+        const parkName = queryParkNames[index];
+        if (!intersectingParks.includes(parkName)) {
+          intersectingParks.push(parkName);
+          //console.log("Added park:", parkName);
+
+          // Highlight the intersecting park on the map
+          const highlightGraphic = new Graphic({
+            geometry: parkGeometry,
+            symbol: {
+              type: "simple-fill",
+              color: [0, 255, 255, 0.4],
+              outline: { color: "black", width: 1 },
+            },
+          });
+          // Add it to the layer
+          intersectingParksLayer.add(highlightGraphic);
+        }
+      }
+    });
+
+    // Populate the HTML list
+    const listContainer = document.getElementById("intersectListContainer");
+    const list = document.getElementById("intersectList");
+    list.innerHTML = ""; // Clear previous results
+
+    // Step 5: Display results in the console and HTML list
+    if (intersectingParks.length > 0) {
+      intersectingParks.forEach((name) => {
+        console.log("Rendering name:", name);
+
+        const li = document.createElement("li");
+        li.textContent = name;
+        list.appendChild(li);
+      });
+    } else {
+      const li = document.createElement("li");
+      li.textContent = "No intersecting parks.";
+      list.appendChild(li);
+    }
+  }
+});
+
 //Wait for view and perform spatial linking
 
 const legend = new Legend({
   view: view,
+  container: "legendDiv",
 });
 
 // view.ui.add(legend, "bottom-right");
 
-const legendListExpand = new Expand({
-  expandIcon: "ellipsis",
-  view: view,
-  content: legend,
-  expanded: true,
-});
-view.ui.add(legendListExpand, "bottom-right");
+// const legendListExpand = new Expand({
+//   expandIcon: "ellipsis",
+//   view: view,
+//   content: legend,
+//   expanded: true,
+// });
+// view.ui.add(legendListExpand, "bottom-right");
 
 const layerList = new LayerList({
   view: view,
@@ -143,14 +252,101 @@ const queryExpand = new Expand({
 });
 view.ui.add(queryExpand, "bottom-left");
 
+// Bookmarks widget
+const bookmarks = new Bookmarks({
+  view: view,
+  editingEnabled: false, // Set to true if users are allowed to add/edit bookmarks
+});
+
+const bookmarksExpand = new Expand({
+  view: view,
+  content: bookmarks,
+  expandIcon: "bookmark",
+  expanded: false,
+});
+view.ui.add(bookmarksExpand, "top-left");
+
+// Basemap Gallery Widget
+const BasemapGalleryWidget = new BasemapGallery({
+  view: view,
+});
+
+const basemapExpand = new Expand({
+  view: view,
+  content: BasemapGalleryWidget,
+  expandIcon: "basemap",
+  expanded: false,
+});
+view.ui.add(basemapExpand, "top-left");
+
+// Add margin to the widget
+bookmarksExpand.container.style.marginTop = "10px";
+
+// Print Widget
+// const printWidget = new Print({
+//   view: view,
+//   printServiceUrl:
+//     "https://utility.arcgisonline.com/ArcGIS/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task",
+// });
+
+// const printExpand = new Expand({
+//   view: view,
+//   content: printWidget,
+//   expandIcon: "print",
+//   expanded: false,
+// });
+
+// view.ui.add(printExpand, "top-left");
+
+// --- Calcite Panel Bookmark --- //
+const bookmarksPaneWidget = new Bookmarks({
+  view: view,
+  container: "bookmarksDiv",
+  editingEnabled: false,
+});
+
+// --- Calcite Panel Basemap Gallery //
+const basemapGalleryPanelWidget = new BasemapGallery({
+  view: view,
+  container: "basemapGalleryDiv",
+});
+
+// --- Calcite Panel Print --- //
+const printPanelWidget = new Print({
+  view: view,
+  container: "printDiv",
+  printServiceUrl:
+    "https://utility.arcgisonline.com/ArcGIS/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task",
+});
+
 // ADD EVENT LISTENTERS
 //prettier-ignore
 view.when(() => {
+  
+  const query = parksLayer.createQuery();
+  query.where = "1=1";
+  query.returnGeometry = true;
+  query.outFields = ["PARK_NAME"];
+
+  parksLayer.queryFeatures(query).then((result) => {
+    queryGeometries.length = 0;
+    queryParkNames.length = 0;
+
+    result.features.forEach((feature) => {
+      queryGeometries.push(feature.geometry);
+      queryParkNames.push(feature.attributes.PARK_NAME);
+    });
+
+    console.log("Parks loaded:", queryGeometries.length);
+    console.log("Loaded parks:", queryParkNames);
+  });
+
   document.getElementById("queryButton").addEventListener("click", function () {
     let currentWhere = document.getElementById("whereClause").value;
     queryFeatureLayer(currentWhere);
-    
   });
+
+  
 
   // Reset Button Listener
   document.getElementById("resetButton").addEventListener("click", function() {
@@ -158,10 +354,48 @@ view.when(() => {
     document.getElementById("featureTablePH").style.height = "0";
     document.getElementById("featureTablePH").innerHTML = "";
     document.getElementById("whereClause").value = "";
+    document.getElementById("trailheadCount").textContent = ""; // Clear the count
+    document.getElementById("trailheadCount").style.display = "none";
+    queryResultsLayer.removeAll(); // Clear parks
+    nearbyTrailheadsLayer.removeAll(); // Clear Trailheads
   })
+
+  document.getElementById("clearButton").addEventListener("click", () => {
+    // Clear graphics from each custom GraphicsLayer
+    sketchLayer.removeAll();
+    intersectingParksLayer.removeAll();
+
+    // Clear HTML results list
+    document.getElementById("intersectList").innerHTML = "";
+
+    // Optionally rest styling or view height if changed
+    console.log("Sketch and intersecting layers cleared.")
+  }
+  )
   
 });
 
+document.addEventListener("DOMContentLoaded", function () {
+  const toggleButton = document.getElementById("toggle-panel");
+  const shellPanel = document.querySelector("calcite-shell-panel");
+
+  // Iniital button position when panel is expanded
+  //toggleButton.style.left = "10px"; // aligns with a 280px panel
+
+  toggleButton.addEventListener("click", () => {
+    const isCollapsed = shellPanel.hasAttribute("collapsed");
+
+    if (isCollapsed) {
+      shellPanel.removeAttribute("collapsed");
+      toggleButton.icon = "chevrons-left"; // icon when expanded
+      //toggleButton.style.left = "285px"; // shift the chevron back into place
+    } else {
+      shellPanel.setAttribute("collapsed", "");
+      toggleButton.icon = "chevrons-right"; // icon when collapsed
+      //toggleButton.style.left = "10px"; // Move the chevron left
+    }
+  });
+});
 function queryFeatureLayer(whereClause) {
   const query = new Query();
   query.where = whereClause;
@@ -170,8 +404,6 @@ function queryFeatureLayer(whereClause) {
   query.outFields = ["*"];
 
   parksLayer.queryFeatures(query).then(function (results) {
-    //console.log("Results loaded", results.features); // prints the array of features to the console
-    //console.log(results.features[0]);
     const features = results.features;
 
     // 1. Extract attributes for the table
@@ -245,6 +477,8 @@ function flashFeature(graphic) {
 }
 
 function showNearbyTrailheads(selectedPark) {
+  console.log("Selected park:", selectedPark.attributes?.PARK_NAME);
+
   if (!selectedPark || !selectedPark.geometry) return;
 
   // Clear previous highlights
@@ -256,25 +490,38 @@ function showNearbyTrailheads(selectedPark) {
   query.outFields = ["*"];
 
   trailheadsLayer.queryFeatures(query).then((result) => {
-    console.log("Trailheads returned:", result.features.length); // Diagnositc Step
+    //console.log("Trailheads returned:", result.features.length); // Diagnositc Step
 
     // Here we are always calling projection.load() BEFORE using projection.project()
     projection.load().then(() => {
-      const parkSR = selectedPark.geometry.SpatialReference;
+      const parkSR = selectedPark.geometry.spatialReference;
 
       const nearby = result.features.filter((trailhead) => {
         const projected = projection.project(trailhead.geometry, parkSR);
+        if (!projected) {
+          // prettier-ignore
+          console.warn("Projected failed for trailhead:", trailhead.attributes?.NAME);
+          return false;
+        }
 
-        const distance = geometryEngine.distance(
-          selectedPark.geometry,
-          projected,
-          "meters"
-        );
+        // prettier-ignore
+        const distance = geometryEngine.distance(selectedPark.geometry,projected, "meters");
 
-        console.log("Distance to trailhead:", distance); // Another diagnostic
+        const name = trailhead.attributes?.NAME || "Unnamed";
+
+        console.log({
+          park: selectedPark.attributes?.PARK_NAME,
+          trailhead: name,
+          parkGeometry: selectedPark.geometry,
+          distance: distance?.toFixed(2),
+          inRange: distance <= 1609,
+        });
 
         //console.log("Distance to trailhead:", distance);
-        return distance <= 1609; // 1 mile
+        //return distance <= 1609; // 1 mile
+
+        // Temporarily loosen the Range to see if any trailheads are detected
+        return distance <= 5000; // 5km range
       });
 
       nearby.forEach((trailhead) => {
@@ -289,6 +536,10 @@ function showNearbyTrailheads(selectedPark) {
           },
         };
       });
+
+      const countDiv = document.getElementById("trailheadCount");
+      countDiv.textContent = `Trailheads within 1 mile: ${nearby.length}`;
+      countDiv.style.display = "block"; // Show it only when populated
 
       nearbyTrailheadsLayer.addMany(nearby);
       console.log(`Found ${nearby.length} trailheads within 1 mile.`);
@@ -351,6 +602,8 @@ function createFeatureTable(attrs, features) {
       // Call the reusable zoom function
       zoomToFeature(selectedGraphic);
       flashFeature(selectedGraphic); // Handles re-adding of the selected graphic
+      // prettier-ignore
+      console.log("Calling showNearbyTrailheads for:", selectedGraphic.attributes?.PARK_NAME);
       trailheadsLayer.when(() => {
         showNearbyTrailheads(selectedGraphic);
       });

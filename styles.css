@@ -14,9 +14,12 @@ body {
 
 #viewDiv {
   height: 100%;
-  /* width: 100%;
-  flex-grow: 2;
-  position: relative; */
+  width: 100%;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
   transition: height 0.3s ease;
 }
 
@@ -60,13 +63,64 @@ body {
   width: 100%;
 } */
 
+#trailheadCount {
+  padding: 10px;
+  font-weight: bold;
+  color: #00468b;
+  display: none;
+}
+
 arcgis-map {
   display: block;
   /* height: 100vh; */
+}
+
+#intersectListContainer {
+  padding: 10px;
 }
 
 #query {
   position: relative;
   bottom: 50%;
   /* left: 10px; */
+}
+
+.hidden {
+  display: none !important;
+}
+
+.map-tools-panel {
+  width: 280px;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.panel-widget {
+  margin-bottom: 1rem;
+}
+
+.panel-widget:hover {
+  /* background-color: #e0e0e0; */
+  transition: background-color 0.3s ease;
+}
+
+calcite-shell-panel.map-tools-panel {
+  width: 280px !important;
+}
+
+#toggle-panel {
+  position: fixed;
+  top: 100px; // Adjust as needed
+  left: 10px !important;
+  z-index: 11000;
+  background-color: white;
+  border-radius: 0 6px px 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  padding: 6px;
+  cursor: pointer;
+  //transition: left 0.3s ease;
+}
+
+calcite-shell-panel[position="start"]:not([collapsed]) {
+  margin-left: 50px;
 }
