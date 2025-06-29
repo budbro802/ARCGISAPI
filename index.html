@@ -21,33 +21,78 @@
 
   <body>
     <!-- prettier-ignore -->
-    <calcite-action id="toggle-panel" icon="chevrons-left" text="Toggle Panel"></calcite-action>
+
     <calcite-shell>
       <!-- prettier-ignore -->
-      <!-- <calcite-action-bar slot="action-bar">
-        <calcite-action id="toggle-panel" icon="chevrons-left" text="Toggle Panel" title="Toggle Panel"></calcite-action>
-      </calcite-action-bar> -->
+      <calcite-action-bar layout="vertical" id="toolActions" class="floating-action-bar">
+        <!-- prettier-ignore -->
+        <calcite-action  icon="data-magnifying-glass" text="query" id="queryAction"></calcite-action>
+        <calcite-action icon="layers" text="Layers" id="layerListAction"></calcite-action>
+        <calcite-action icon="legend" text="Legend" id="legendAction"></calcite-action>
+        <calcite-action icon="bookmark" text="Bookmarks" id="bookmarksAction"></calcite-action>
+        <calcite-action icon="basemap" text="Basemap" id="basemapAction"></calcite-action>
+        <calcite-action icon="print" text="Print" id="printAction"></calcite-action>
+        <calcite-action id="info" icon="information" text="Info"></calcite-action>
+      </calcite-action-bar>
       <!-- prettier-ignore -->
-      <calcite-shell-panel slot="panel-start" position="start" collapsed class="map-tools-panel">
-        <calcite-panel heading="Map Tools" collapsible>
-          <div id="bookmarksDiv" class="panel-widget"></div>
-          <div id="basemapGalleryDiv" class="panel-widget"></div>
-          <div id="printDiv" class="panel-widget"></div>
-          <div id="legendDiv" class="panel-widget"></div>
-        </calcite-panel>
-      </calcite-shell-panel>
-
+      
+        
+      
       <div id="outerDiv">
-        <div id="viewDiv"></div>
+        <!-- Map Div -->
+        <div id="viewDiv"></div> 
+
+        <!-- Floating Panels -->
+        <div id="queryDiv" class="floating-widget hidden">
+        <h3>Query Parks</h3>
+        <p>1. Search for your parks here. Be sure to use a WHERE Clause:</p>
+        <!-- prettier-ignore -->
+        <input type="text" id="whereClause" placeholder="TYPE = 'Local Park'" class="query-input"/>
+        <button id="queryButton" class="panel-button">Query Features</button>
+        <button id="resetButton">Reset</button>
+        <button id="clearButton">Clear Sketch</button>
+        
+        <h4>Draw Area</h4>
+        <div id="sketchDiv"></div>
+        <div id="trailheadCount" style="margin-top: 10px; display: none;"></div>
+        <div id="intersectListContainer">
+          <ul id="intersectList"></ul>
+        </div>
+      </div>
+      </div>
+
+      <div id="legendDiv" class="floating-widget hidden"></div>
+      <div id="layerListDiv" class="floating-widget hidden"></div>
+      <div id="bookmarksDiv" class="floating-widget hidden"></div>
+      <div id="basemapGalleryDiv" class="floating-widget hidden"></div>
+      <div id="printDiv" class="floating-widget hidden"></div>
+      <div id="infoDiv" class="floating-widget hidden">
+        <h3>Welcome to Andrew's WebMap</h3>
+        <p>This app allows you to:</p>
+        <ul>
+          <li>Run Custom queries on the Parks layer</li>
+          <li>Use the drawing tools to filter data</li>
+          <li>View nearby trailheads and Intersecting parks</li>
+        </ul>
+        <p>Click the icons on the left to get started.</p>
+      </div>
+        
+      
+
+      <!-- prettier-ignore -->
+      <div id="featureTablePH" class="feature-table-container" style="background-color: #1a1a1a; padding: 10px;"></div>
+
+      <!-- <div id="outerDiv">
+        <div id="viewDiv"></div> 
         <div id="trailheadCount" style="padding: 10px; font-weight: bold"></div>
-        <div id="featureTablePH"></div>
+        <div id="featureTablePH" class="feature-table-container" style="background-color: #1a1a1a; padding: 10px;"></div>
         <div id="intersectListContainer" class="hidden">
           <h3>Intersecting Parks</h3>
           <ul id="intersectList"></ul>
         </div>
-      </div>
+      </div> -->
 
-      <div id="query" slot="footer">
+      <!-- <div id="query" slot="footer">
         <input
           value="AGNCY_TYP = 'State Agency'"
           type="text"
@@ -56,7 +101,7 @@
         <button id="queryButton">Query Features</button>
         <button id="resetButton">Reset</button>
         <button id="clearButton">Clear</button>
-      </div>
+      </div> -->
     </calcite-shell>
     <script type="module" src="/src/appv2.js"></script>
   </body>

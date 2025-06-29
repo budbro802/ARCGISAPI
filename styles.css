@@ -13,22 +13,29 @@ body {
 }
 
 #viewDiv {
+  flex: 1;
   height: 100%;
   width: 100%;
-  position: absolute;
+  /* position: absolute;
   top: 0;
   bottom: 0;
   right: 0;
-  left: 0;
+  left: 0; */
   transition: height 0.3s ease;
 }
 
 #featureTablePH {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   height: 0;
-  overflow: hidden;
+  /* overflow: hidden; */
   transition: height 0.3s ease;
   overflow-y: auto;
   overflow-x: auto;
+  z-index: 9;
+  padding: 0 10px;
   /* height: 50%;
   flex-grow: 1;
   
@@ -85,18 +92,41 @@ arcgis-map {
   /* left: 10px; */
 }
 
+#queryDiv {
+  padding: 1rem;
+}
+
+.query-input {
+  width: 100%;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+}
+
 .hidden {
   display: none !important;
 }
 
-.map-tools-panel {
-  width: 280px;
+/* .map-tools-panel {
+  width: 260px;
+  margin-left: 10px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
   z-index: 1000;
-  padding: 1rem;
+} */
+
+.panel-button {
+  margin-bottom: 1rem;
 }
 
 .panel-widget {
-  margin-bottom: 1rem;
+  display: none;
+  padding: 0.75rem 1rem;
+  /* margin-bottom: 1rem; */
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+.panel-widget.active {
+  display: block;
 }
 
 .panel-widget:hover {
@@ -104,11 +134,11 @@ arcgis-map {
   transition: background-color 0.3s ease;
 }
 
-calcite-shell-panel.map-tools-panel {
+/* calcite-shell-panel.map-tools-panel {
   width: 280px !important;
-}
+} */
 
-#toggle-panel {
+/* #toggle-panel {
   position: fixed;
   top: 100px; // Adjust as needed
   left: 10px !important;
@@ -119,8 +149,59 @@ calcite-shell-panel.map-tools-panel {
   padding: 6px;
   cursor: pointer;
   //transition: left 0.3s ease;
+} */
+
+/* calcite-shell-panel[position="start"]:not([collapsed]) {
+  margin-left: 50px;
 }
 
-calcite-shell-panel[position="start"]:not([collapsed]) {
-  margin-left: 50px;
+calcite-shell-panel[hidden] {
+  display: none !important;
+}
+
+calcite-panel .panel-widget {
+  max-width: 260px;
+  margin: 0 auto;
+}
+
+calcite-shell-panel.map-tools-panel {
+  width: 300px;
+  overflow: hidden;
+} */
+
+.floating-action-bar {
+  position: absolute;
+  top: 80px;
+  left: 10px;
+  z-index: 99;
+}
+
+.floating-widget {
+  position: absolute;
+  top: 60px;
+  left: 80px;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  width: 260px;
+  padding: 10px;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Shift the map right only when the panel is open
+calcite-shell-panel[position="start"]:not([collapsed]) ~ #outerDiv #viewDiv {
+  margin-left: 280px; /* Same as the panel width 
+} */
+
+/* #viewDiv.with-panel {
+  margin-left: 280px !important;
+} */
+
+/* When collapsed, restore full width */
+calcite-shell-panel[position="start"][collapsed] ~ #outerDiv #viewDiv {
+  margin-left: 0;
 }

@@ -34,6 +34,10 @@ const view = new MapView({
   zoom: 13,
 });
 
+let bookmarksWidgetCreated = false;
+let basemapWidgetCreated = false;
+let printWidgetCreated = false;
+
 // Renderer for trailheads
 const trailheadsRenderer = {
   type: "simple",
@@ -126,6 +130,7 @@ map.add(intersectingParksLayer);
 const sketch = new Sketch({
   layer: sketchLayer,
   view: view,
+  container: "sketchDiv",
   availableCreateTools: ["polygon", "rectangle"],
   creationMode: "single", // Only allow one shape at a time
   visibleElements: {
@@ -141,7 +146,7 @@ const sketch = new Sketch({
   },
 });
 
-view.ui.add(sketch, "top-right");
+//view.ui.add(sketch, "top-right");
 
 const highlightSymbol = {
   type: "simple-fill",
@@ -233,16 +238,8 @@ const legend = new Legend({
 
 const layerList = new LayerList({
   view: view,
+  container: "layerListDiv", // This attaches it inside the panel
 });
-
-const layerListExpand = new Expand({
-  expandIcon: "layers", // see https://developers.arcgis.com/calcite-design-system/icons/
-  // expandTooltip: "Expand LayerList", // optional, defaults to "Expand" for English locale
-  view: view,
-  content: layerList,
-  expanded: true,
-});
-view.ui.add(layerListExpand, "top-right");
 
 const queryExpand = new Expand({
   expandIcon: "magnifying-glass",
@@ -255,6 +252,7 @@ view.ui.add(queryExpand, "bottom-left");
 // Bookmarks widget
 const bookmarks = new Bookmarks({
   view: view,
+  container: "bookmarksDiv",
   editingEnabled: false, // Set to true if users are allowed to add/edit bookmarks
 });
 
@@ -264,11 +262,12 @@ const bookmarksExpand = new Expand({
   expandIcon: "bookmark",
   expanded: false,
 });
-view.ui.add(bookmarksExpand, "top-left");
+//view.ui.add(bookmarksExpand, "top-left");
 
 // Basemap Gallery Widget
 const BasemapGalleryWidget = new BasemapGallery({
   view: view,
+  container: "basemapGalleryDiv",
 });
 
 const basemapExpand = new Expand({
@@ -277,46 +276,11 @@ const basemapExpand = new Expand({
   expandIcon: "basemap",
   expanded: false,
 });
-view.ui.add(basemapExpand, "top-left");
-
-// Add margin to the widget
-bookmarksExpand.container.style.marginTop = "10px";
 
 // Print Widget
-// const printWidget = new Print({
-//   view: view,
-//   printServiceUrl:
-//     "https://utility.arcgisonline.com/ArcGIS/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task",
-// });
-
-// const printExpand = new Expand({
-//   view: view,
-//   content: printWidget,
-//   expandIcon: "print",
-//   expanded: false,
-// });
-
-// view.ui.add(printExpand, "top-left");
-
-// --- Calcite Panel Bookmark --- //
-const bookmarksPaneWidget = new Bookmarks({
-  view: view,
-  container: "bookmarksDiv",
-  editingEnabled: false,
-});
-
-// --- Calcite Panel Basemap Gallery //
-const basemapGalleryPanelWidget = new BasemapGallery({
-  view: view,
-  container: "basemapGalleryDiv",
-});
-
-// --- Calcite Panel Print --- //
-const printPanelWidget = new Print({
+const printWidget = new Print({
   view: view,
   container: "printDiv",
-  printServiceUrl:
-    "https://utility.arcgisonline.com/ArcGIS/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task",
 });
 
 // ADD EVENT LISTENTERS
@@ -376,26 +340,68 @@ view.when(() => {
 });
 
 document.addEventListener("DOMContentLoaded", function () {
-  const toggleButton = document.getElementById("toggle-panel");
-  const shellPanel = document.querySelector("calcite-shell-panel");
+  //const shellPanel = document.querySelector("calcite-shell-panel");
+  const calcitePanel = document.querySelector("calcite-panel");
 
-  // Iniital button position when panel is expanded
-  //toggleButton.style.left = "10px"; // aligns with a 280px panel
-
-  toggleButton.addEventListener("click", () => {
-    const isCollapsed = shellPanel.hasAttribute("collapsed");
-
-    if (isCollapsed) {
-      shellPanel.removeAttribute("collapsed");
-      toggleButton.icon = "chevrons-left"; // icon when expanded
-      //toggleButton.style.left = "285px"; // shift the chevron back into place
-    } else {
-      shellPanel.setAttribute("collapsed", "");
-      toggleButton.icon = "chevrons-right"; // icon when collapsed
-      //toggleButton.style.left = "10px"; // Move the chevron left
+  // Handle toggle button clicks
+  Object.keys(actions).forEach((actionId) => {
+    const button = document.getElementById(actionId);
+    if (button) {
+      button.addEventListener("click", () => handlePanelToggle(actionId));
     }
   });
 });
+
+const actions = {
+  legendAction: "legendDiv",
+  bookmarksAction: "bookmarksDiv",
+  basemapAction: "basemapGalleryDiv",
+  printAction: "printDiv",
+  layerListAction: "layerListDiv",
+  legendAction: "legendDiv",
+  sketchAction: "sketchDiv",
+  queryAction: "queryDiv",
+  info: "infoDiv",
+};
+
+let currentActiveAction = null;
+
+function handlePanelToggle(actionId) {
+  // const shellPanel = document.querySelector("calcite-shell-panel");
+
+  // const panel = document.querySelector("calcite-panel");
+  const panelWidgets = document.querySelectorAll(".floating-widget");
+  const widgetId = actions[actionId];
+  const widget = document.getElementById(widgetId);
+  // const viewDiv = document.getElementById("viewDiv");
+  if (!widget) return;
+
+  // if (!shellPanel || !panel || !widget) return;
+
+  // If clicking the same active action again then collapse then panel
+  if (currentActiveAction === actionId) {
+    // shellPanel.setAttribute("collapsed", "");
+    // panel.setAttribute("hidden", "");
+    // panelWidgets.forEach((div) => div.classList.remove("active"));
+    widget.classList.add("hidden");
+    currentActiveAction = null;
+
+    // Remove margin when panel collapses
+    // viewDiv.classList.remove("with-panel");
+    return;
+  }
+
+  // Otherwise expand the panel and show the correct widget
+  // shellPanel.removeAttribute("collapsed");
+  // panel.removeAttribute("hidden");
+  panelWidgets.forEach((div) => div.classList.remove("active"));
+  // widget.classList.add("active");
+  widget.classList.remove("hidden");
+  currentActiveAction = actionId;
+
+  console.log("Toggling:", actionId, widgetId, widget);
+}
+
 function queryFeatureLayer(whereClause) {
   const query = new Query();
   query.where = whereClause;
@@ -411,8 +417,8 @@ function queryFeatureLayer(whereClause) {
     createFeatureTable(attrs, features); // Pass to table function
 
     // 2. Adjust layout dynamically
-    document.getElementById("viewDiv").style.height = "60%";
-    document.getElementById("featureTablePH").style.height = "40%";
+    document.getElementById("viewDiv").style.height = "calc(100vh - 280px)";
+    document.getElementById("featureTablePH").style.height = "280px";
 
     // 3. Clear previous graphics
     queryResultsLayer.removeAll();
@@ -565,7 +571,8 @@ function createFeatureTable(attrs, features) {
   for (let key in attrs[0]) {
     createdTable += `<th>${key}</th>`;
   }
-  createdTable += "<th>${key}</th>";
+  //createdTable += "<th>${key}</th>";
+  createdTable += "</tr>";
 
   // Build table rows with event hooks
   for (let i = 0; i < attrs.length; i++) {
